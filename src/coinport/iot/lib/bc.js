@@ -149,3 +149,7 @@ BC.prototype.getAccountInfo = function(name, callback) {
         }
     });
 };
+
+BC.updateAccount = function(name, publicData, callback) {
+    callback(null, 'ok');
+};
