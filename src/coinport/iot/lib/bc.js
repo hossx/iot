@@ -151,5 +151,25 @@ BC.prototype.getAccountInfo = function(name, callback) {
 };
 
 BC.updateAccount = function(name, publicData, callback) {
-    callback(null, 'ok');
+    var self = this;
+    var params = [];
+    params.push(name);
+    params.push(name);
+    params.push(publicData);
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_update_registration", params: params};
+    var request = JSON.stringify(requestBody);
+    console.log("updatePublicData request: ", request);
+    var response = new Object();
+    self.httpRequest_(request, function(error, result) {
+        console.log("updatePublicData result: ", result);
+        if (!error && result.result) {
+            response.flag = "SUCCESSED";
+            response.publicData = result.result.record_id;
+            callback(null, response);
+        } else {
+            self.log.info("error: ", error);
+            response.flag = "FAILED";
+            callback("FAILED", response);
+        }
+    });
 };
