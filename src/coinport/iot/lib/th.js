@@ -22,5 +22,11 @@ TH.EventType = {
  * @param {String} message The message
  * @return {boolean} Success or Fail
  */
-TH.prototype.sendMessage = function(from, to, message) {
+TH.prototype.sendMessage = function(to, message) {
+};
+
+TH.prototype.listen = function() {
+};
+
+TH.generateEndpoint = function() {
 };

@@ -3,5 +3,9 @@ The demo of iot inspired by IBM's demo
 
 ## Build
 ```
-npm install redis hiredis
+npm install async redis hiredis
 ```
+
+Add init authed keys:
+
+SADD auth cpkey1
