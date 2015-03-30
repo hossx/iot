@@ -6,8 +6,8 @@
 var Events     = require('events'),
     Util       = require("util"),
     Telehash   = require("/home/jaice/work/locker/node_modules/telehash"),
-    EventStream = require('/usr/local/lib/node_modules/event-stream');
-    Stream = require('/usr/local/lib/node_modules/stream');
+    EventStream = require('/usr/local/lib/node_modules/event-stream'),
+    StringDecoder = require('string_decoder').StringDecoder;
 
 var TH = module.exports.TH = function(endpoint, cb) {
     Events.EventEmitter.call(this);
@@ -41,7 +41,8 @@ TH.EventType = {
 TH.prototype.sendMessage = function(to, message) {
   if (this.mesh != null) {
     this.mesh.link(to, function(e, l){
-      EventStream.readArray(message).pipe(l.stream());
+      var messageArray = [message]
+      EventStream.readArray(messageArray).pipe(l.stream());
       // l.stream().pipe(message);
     });
   } else {
@@ -51,12 +52,13 @@ TH.prototype.sendMessage = function(to, message) {
 
 TH.prototype.listen = function() {
   var self = this;
+  var decoder = new StringDecoder('utf8');
   this.mesh.accept = this.mesh.link;
   this.mesh.stream(function(link, req, accept){
     console.log("start receive message from p2p network")
     accept().pipe(EventStream.writeArray(function(err, message){
       console.log("message : ", message);
-      self.emit(TH.EventType.RECEIVED_MESSAGE, req, message);
+      self.emit(TH.EventType.RECEIVED_MESSAGE, link.hashname, decoder.write(message[0]));
     }));
   });
 };
