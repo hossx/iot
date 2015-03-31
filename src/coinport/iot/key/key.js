@@ -37,7 +37,7 @@ Key.prototype.processCmd = function(cmd) {
                 if (error || !keyHash) {
                     console.log('can\'t find the hash for key: ' + id);
                 } else {
-                    var hash = keyHash[1];
+                    var hash = keyHash.publicData;
                     if (hash) {
                         self.th.sendMessage(hash, op);
                         console.log(op + ' the door: ' + id + '(' + hash + ')')
@@ -47,7 +47,7 @@ Key.prototype.processCmd = function(cmd) {
                 }
             });
         } else if (op == 'auth' || op == 'unauth') {
-            self.bc.storeData(self.did, tid, op + ' ' + id);
+            self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
             console.log(op + ' ' + id + ' for ' + tid);
         } else {
             console.log('unknown command');

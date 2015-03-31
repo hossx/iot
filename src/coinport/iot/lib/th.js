@@ -56,7 +56,7 @@ TH.prototype.listen = function() {
     console.log("start receive message from p2p network")
     accept().pipe(EventStream.writeArray(function(err, message){
       console.log("message : ", message);
-      self.emit(TH.EventType.NEW_MESSAGE, link.hashname, decoder.write(message[0]));
+      self.emit(TH.EventType.NEW_MESSAGE, {from:link.hashname, message:decoder.write(message[0])});
     }));
   });
 };

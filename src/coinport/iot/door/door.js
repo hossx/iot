@@ -118,8 +118,8 @@ Door.prototype.authKey = function(key, keyMap) {
         if (error) {
             console.log(error);
         } else {
-            keyMap.keys[completeKey[0]] = completeKey[1];
-            keyMap.hashs[completeKey[1]] = completeKey[0];
+            keyMap.keys[completeKey.name] = completeKey.publicData;
+            keyMap.hashs[completeKey.publicData] = completeKey.name;
             self.redisClient.sadd('auth', [key], function(err, redisResp) {
                 if (err) {
                     console.log(err + ' ' + redisResp);
@@ -148,8 +148,8 @@ Door.prototype.initKeys = function(initAuthedKeys) {
     var self = this;
     Async.map(initAuthedKeys, this.bc.getAccountInfo, function(error, completedKeys) {
         for (var i = 0; i < completedKeys.length; ++i) {
-            self.authedKeys.keys[completedKeys[i][0]] = completedKeys[i][1];
-            self.authedKeys.hashs[completedKeys[i][1]] = completedKeys[i][0];
+            self.authedKeys.keys[completedKeys[i].name] = completedKeys[i].publicData;
+            self.authedKeys.hashs[completedKeys[i].publicData] = completedKeys[i].name;
         }
     });
 };
