@@ -48,7 +48,6 @@ BC.httpOptions = {
 BC.prototype.logFunction = function log(type) {
     var self = this;
     return function() {
-        console.log(type, 'btsx crypto_proxy');
     };
 };
 BC.EventType = {
@@ -70,17 +69,14 @@ BC.httpRequest_ = function(request, callback) {
 
         res.on('end', function() {
             if(res.statusCode == 401) {
-                console.log(new Error('bc JSON-RPC connection rejected: 401 unauthorized'));
                 return;
             }
 
             if(res.statusCode == 403) {
-                console.log(new Error('bc JSON-RPC connection rejected: 403 forbidden'));
                 return;
             }
 
             if(err) {
-                console.log('httpRequest error: ', err);
                 return;
             }
 
@@ -90,8 +86,6 @@ BC.httpRequest_ = function(request, callback) {
                 var parsedBuf = JSON.parse(body.data || body);
                 callback(null, parsedBuf);
             } catch(e) {
-                console.log("e.stack", e.stack);
-                console.log('HTTP Status code:' + res.statusCode);
                 return;
             }
         });
@@ -99,7 +93,6 @@ BC.httpRequest_ = function(request, callback) {
 
     req.on('error', function(e) {
         var err = new Error('Could not connect to bc via RPC: '+e.message);
-        console.log(err);
     });
 
     req.setHeader('Accept', 'application/json, text/plain, */*');
@@ -122,16 +115,13 @@ BC.prototype.storeData = function(from, to, memo, callback) {
     params.push(memo);
     var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_transfer", params: params};
     var request = JSON.stringify(requestBody);
-    console.log("walletTransfer_ request: ", request);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("walletTransfer_ result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.txid = result.result.record_id;
             callback(null, response);
         } else {
-            console.log("error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -149,17 +139,14 @@ BC.prototype.getAccountInfo = function(name, callback) {
     params.push(name);
     var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_account", params: params};
     var request = JSON.stringify(requestBody);
-    console.log("getAccountInfo_ request: ", request);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("getAccountInfo result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.name = result.result.name;
             response.publicData = result.result.public_data;
             callback(null, response);
         } else {
-            console.log("error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -173,16 +160,13 @@ BC.updateAccount = function(name, publicData, callback) {
     params.push(publicData);
     var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_update_registration", params: params};
     var request = JSON.stringify(requestBody);
-    console.log("updatePublicData request: ", request);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("updatePublicData result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.publicData = result.result.record_id;
             callback(null, response);
         } else {
-            console.log("error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -195,12 +179,10 @@ BC.prototype.walletOpen_ = function(callback) {
     params.push(self.walletName);
     var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_open", params: params};
     var request = JSON.stringify(requestBody);
-    console.log("walletOpen_ request: ", request);
     BC.httpRequest_(request, function(error, result) {
         if (!error) {
             callback(null, result.result);
         } else {
-            console.log("wallet_open error: ", error);
             callback(error, null);
         }
     });
@@ -208,7 +190,6 @@ BC.prototype.walletOpen_ = function(callback) {
 
 BC.prototype.walletUnlock_ = function(callback) {
     var self = this;
-    console.log("Enter into walletUnlock_!");
     var params = [];
     params.push(3600);
     params.push(self.walletPassPhrase);
@@ -216,10 +197,8 @@ BC.prototype.walletUnlock_ = function(callback) {
     var request = JSON.stringify(requestBody);
     BC.httpRequest_(request, function(error, result) {
         if (!error) {
-            console.log("walletUnlock_: ", result);
             callback(null, result.result);
         } else {
-            console.log("wallet_unlock error: ", error);
             callback(error, null);
         }
     });
@@ -235,15 +214,12 @@ BC.prototype.initWallet_ = function(callback) {
                 self.walletUnlock_.bind(self)(cb)}
         ], function(error, result) {
             if (error) {
-                console.log("initWallet", error);
                 callback(error, null);
             } else {
-                console.log("initWallet success!");
                 callback(null, result);
             }
         });
     } else {
-        console.log("no password!");
         callback("wallet info lose!", null);
     }
 };
@@ -255,7 +231,6 @@ BC.prototype.start = function() {
             self.checkBlockAfterDelay_();
             self.unlockWalletAfterDelay_();
         } else {
-            console.log("init wallet failed");
         }
     });
 };
@@ -268,7 +243,6 @@ BC.prototype.checkBlock_ = function() {
                 if (!errorRedis) {
                     self.checkBlockAfterDelay_(0);
                 } else {
-                    console.log("checkBlock_errorRedis: ", errorRedis);
                     self.checkBlockAfterDelay_(1000);
                 }
             });
@@ -298,7 +272,6 @@ BC.prototype.getLastIndex_ = function(callback) {
 
 BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
     var self = this;
-    console.log("Enter into getWalletTransactionByIndex_");
     var params = [];
     params.push(this.did);
     params.push("BTS");
@@ -313,30 +286,25 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
             callback(error);
         } else {
             if (height == count) {
-                console.log('no new block found');
                 callback('no new block found');
             } else {
                 params.push(height);
                 var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_transaction_history", params: params};
                 var request = JSON.stringify(requestBody);
-                console.log("request: ", request);
                 BC.httpRequest_(request, function(error, result) {
                     if(!error) {
-                        console.log("getWalletTransactionByIndex_ result: ", result);
                         var response = [];
                         for (var i = 0; i < result.result.length; i++) {
                             for (var j = 0; j < result.result[i].ledger_entries.length; j++) {
                                 var tx = new Object();
                                 tx.from = result.result[i].ledger_entries[j].from_account;
                                 tx.memo = result.result[i].ledger_entries[j].memo;
-                                console.log("EMIT!!!!!!!!!!!!!!!%j", tx);
                                 self.emit(BC.EventType.NEW_INFO, tx);
                                 response.push(tx);
                             }
                         }
                         callback(null, count);
                     } else {
-                        console.log("error: ", error);
                         callback(error, null);
                     }
                 });
@@ -349,9 +317,7 @@ BC.prototype.getBlockCount_ = function(callback) {
     var self = this;
     var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_blockcount", params: []};
     var request = JSON.stringify(requestBody);
-    console.log("getBlockCount_ request: ", request);
     BC.httpRequest_(request, function(error, result) {
-        console.log("getBlockCount_ result: ", result);
         callback(error, result.result);
     });
 };
@@ -370,7 +336,6 @@ BC.prototype.unlockWalletAfterDelay_ = function(opt_interval) {
          if (!error) {
              setTimeout(self.unlockWalletAfterDelay_.bind(self), interval);
          } else {
-             console.log("unlockWalletAfterDelay_ error: ", error);
              setTimeout(self.unlockWalletAfterDelay_.bind(self), 1000);
          }
     });
