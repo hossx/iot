@@ -12,7 +12,7 @@ var Key = module.exports.Key = function(deviceId) {
     this.did = deviceId;
     this.endpoint = {};
     this.redisClient = Redis.createClient(6379, 'localhost');
-    this.bc = new BC();
+    this.bc = new BC(this.did);
 
     var self = this;
     this.redisClient.get(this.did, function(error, endpointStr) {

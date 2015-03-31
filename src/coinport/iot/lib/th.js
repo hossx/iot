@@ -5,8 +5,8 @@
 
 var Events     = require('events'),
     Util       = require("util"),
-    Telehash   = require("/home/jaice/work/locker/node_modules/telehash"),
-    EventStream = require('/usr/local/lib/node_modules/event-stream'),
+    Telehash   = require("../../../../node_modules/telehash"),
+    EventStream = require('../../../../node_modules/event-stream'),
     StringDecoder = require('string_decoder').StringDecoder;
 
 var TH = module.exports.TH = function(endpoint, cb) {

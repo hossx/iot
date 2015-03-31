@@ -17,19 +17,10 @@ var Async                         = require('async'),
  * @return {boolean} Success or Fail
  */
 
-var BC = module.exports.BC = function() {
+var BC = module.exports.BC = function(deviceId) {
     Events.EventEmitter.call(this);
 
-    this.rpcUser = "test";
-    this.rpcPass = "test";
-    this.httpOptions = {
-      host: "192.168.0.5",
-      path: '/rpc',
-      method: 'POST',
-      timeout:10000,
-      port: 9989,
-      agent: this.disableAgent ? false : undefined,                   
-    };
+    this.did = deviceId;
     this.redis || (this.redis = Redis.createClient('6379', '127.0.0.1'));
     this.redis.on('connect'     , this.logFunction('connect'));
     this.redis.on('ready'       , this.logFunction('ready'));
@@ -38,11 +29,21 @@ var BC = module.exports.BC = function() {
     this.redis.on('end'         , this.logFunction('end'));
     this.checkInterval || (this.checkInterval = 5000);
     this.lastIndex = 'bc_last_index';
-    this.walletName = "";
-    this.walletPassPhrase = "";
+    this.walletName = "yangli";
+    this.walletPassPhrase = "yanglipassword";
 };
-
 Util.inherits(BC, Events.EventEmitter);
+
+BC.rpcUser = "test";
+BC.rpcPass = "test";
+BC.httpOptions = {
+    host: "192.168.0.5",
+    path: '/rpc',
+    method: 'POST',
+    timeout:10000,
+    port: 9989,
+    agent: this.disableAgent ? false : undefined,
+};
 
 BC.prototype.logFunction = function log(type) {
     var self = this;
@@ -57,15 +58,14 @@ BC.EventType = {
 BC.TX_AMOUNT = 1;
 BC.VALUE_UNIT = "BTS";
 
-BC.prototype.httpRequest_ = function(request, callback) {
-    var self = this;
+BC.httpRequest_ = function(request, callback) {
     var err = null;
-    var auth = Buffer(self.rpcUser + ':' + self.rpcPass).toString('base64');
-    var req = http.request(self.httpOptions, function(res) {
+    var auth = Buffer(BC.rpcUser + ':' + BC.rpcPass).toString('base64');
+    var req = http.request(BC.httpOptions, function(res) {
         var buf = '';
 
         res.on('data', function(data) {
-            buf += data; 
+            buf += data;
         });
 
         res.on('end', function() {
@@ -124,7 +124,7 @@ BC.prototype.storeData = function(from, to, memo, callback) {
     var request = JSON.stringify(requestBody);
     console.log("walletTransfer_ request: ", request);
     var response = new Object();
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         console.log("walletTransfer_ result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
@@ -151,7 +151,7 @@ BC.prototype.getAccountInfo = function(name, callback) {
     var request = JSON.stringify(requestBody);
     console.log("getAccountInfo_ request: ", request);
     var response = new Object();
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         console.log("getAccountInfo result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
@@ -167,7 +167,6 @@ BC.prototype.getAccountInfo = function(name, callback) {
 };
 
 BC.updateAccount = function(name, publicData, callback) {
-    var self = this;
     var params = [];
     params.push(name);
     params.push(name);
@@ -176,7 +175,7 @@ BC.updateAccount = function(name, publicData, callback) {
     var request = JSON.stringify(requestBody);
     console.log("updatePublicData request: ", request);
     var response = new Object();
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         console.log("updatePublicData result: ", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
@@ -197,7 +196,7 @@ BC.prototype.walletOpen_ = function(callback) {
     var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_open", params: params};
     var request = JSON.stringify(requestBody);
     console.log("walletOpen_ request: ", request);
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         if (!error) {
             callback(null, result.result);
         } else {
@@ -215,7 +214,7 @@ BC.prototype.walletUnlock_ = function(callback) {
     params.push(self.walletPassPhrase);
     var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_unlock", params: params};
     var request = JSON.stringify(requestBody);
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         if (!error) {
             console.log("walletUnlock_: ", result);
             callback(null, result.result);
@@ -281,7 +280,7 @@ BC.prototype.checkBlock_ = function() {
 
 BC.prototype.getNextCCBlock_ = function(callback) {
     var self = this;
-    Async.compose(self.getWalletTransactionByIndex_.bind(self), 
+    Async.compose(self.getWalletTransactionByIndex_.bind(self),
         self.getLastIndex_.bind(self))(callback);
 };
 
@@ -301,7 +300,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
     var self = this;
     console.log("Enter into getWalletTransactionByIndex_");
     var params = [];
-    params.push("cpdoor");
+    params.push(this.did);
     params.push("BTS");
     params.push(0);
     if (height == -1) {
@@ -321,7 +320,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                 var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_transaction_history", params: params};
                 var request = JSON.stringify(requestBody);
                 console.log("request: ", request);
-                self.httpRequest_(request, function(error, result) {
+                BC.httpRequest_(request, function(error, result) {
                     if(!error) {
                         console.log("getWalletTransactionByIndex_ result: ", result);
                         var response = [];
@@ -351,7 +350,7 @@ BC.prototype.getBlockCount_ = function(callback) {
     var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_blockcount", params: []};
     var request = JSON.stringify(requestBody);
     console.log("getBlockCount_ request: ", request);
-    self.httpRequest_(request, function(error, result) {
+    BC.httpRequest_(request, function(error, result) {
         console.log("getBlockCount_ result: ", result);
         callback(error, result.result);
     });
@@ -367,7 +366,7 @@ BC.prototype.checkBlockAfterDelay_ = function(opt_interval) {
 BC.prototype.unlockWalletAfterDelay_ = function(opt_interval) {
     var self = this;
     var interval = 900000;
-    self.walletUnlock_.bind(self)(function(error, result){                                                   
+    self.walletUnlock_.bind(self)(function(error, result){
          if (!error) {
              setTimeout(self.unlockWalletAfterDelay_.bind(self), interval);
          } else {

@@ -13,7 +13,7 @@ var Door = module.exports.Door = function(deviceId) {
     this.endpoint = {};
     this.redisClient = Redis.createClient(6379, 'localhost');
     this.authedKeys = {keys:{}, hashs:{}};
-    this.bc = new BC();
+    this.bc = new BC(this.did);
     this.isDoorOpened = false;
 };
 
@@ -52,7 +52,9 @@ Door.prototype.init = function() {
             self.endpoint = JSON.parse(endpointStr);
             console.log('listen on telenet');
             self.th = new TH(self.endpoint);
-            self.th.listen();
+            self.th.on(TH.EventType.MESH_READY, function() {
+                self.th.listen();
+            });
             self.th.on(TH.EventType.NEW_MESSAGE, function(message) {
                 if (message.from in self.authedKeys.hashs) {
                     if (message.message == 'open') {
@@ -93,6 +95,7 @@ Door.prototype.init = function() {
 Door.prototype.listenOnBc = function() {
     var self = this;
     console.log('listen on blockchain');
+    this.bc.start()
     this.bc.on(BC.EventType.NEW_INFO, function(info) {
         if (info.from in self.authedKeys.keys) {
             var parsedCmd = info.memo.split(' ');
@@ -107,13 +110,6 @@ Door.prototype.listenOnBc = function() {
             }
         }
     });
-};
-
-Door.prototype.listenOnTh = function(hashname) {
-    var self = this;
-
-    this.th.listen(hashname);
-
 };
 
 Door.prototype.authKey = function(key, keyMap) {

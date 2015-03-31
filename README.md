@@ -3,7 +3,7 @@ The demo of iot inspired by IBM's demo
 
 ## Build
 ```
-npm install async redis hiredis
+npm install async redis hiredis telehash event-stream http
 ```
 
 Add init authed keys:
