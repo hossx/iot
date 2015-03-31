@@ -7,7 +7,8 @@ var Async                         = require('async'),
     Events                        = require('events'),
     Util                          = require("util"),
     http                          = require('http'),
-    Redis                         = require('redis');
+    Redis                         = require('redis'),
+    Logger                        = require('./logger');
 
 /**
  * Send the bts tx with auth info(memo)
@@ -31,6 +32,7 @@ var BC = module.exports.BC = function(deviceId) {
     this.lastIndex = 'bc_last_index';
     this.walletName = "yangli";
     this.walletPassPhrase = "yanglipassword";
+    this.log = Logger.logger("1000");
 };
 Util.inherits(BC, Events.EventEmitter);
 
@@ -117,6 +119,7 @@ BC.prototype.storeData = function(from, to, memo, callback) {
     var request = JSON.stringify(requestBody);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
+        console.log("%j", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.txid = result.result.record_id;
