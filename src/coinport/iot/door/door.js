@@ -125,6 +125,7 @@ Door.prototype.authKey = function(key, keyMap) {
                     console.log(err + ' ' + redisResp);
                 } else {
                     console.log(key + ' is authenticated');
+                    console.log('The authed keys for now: ' + Object.keys(keyMap.keys))
                 }
             });
         }
