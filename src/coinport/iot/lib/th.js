@@ -44,7 +44,7 @@ TH.prototype.sendMessage = function(to, message) {
       // l.stream().pipe(message);
     });
   } else {
-    console.log("mesh is not init");
+    // console.log("mesh is not init");
   }
 };
 
@@ -53,9 +53,9 @@ TH.prototype.listen = function() {
   var decoder = new StringDecoder('utf8');
   this.mesh.accept = this.mesh.link;
   this.mesh.stream(function(link, req, accept){
-    console.log("start receive message from p2p network")
+    // console.log("start receive message from p2p network")
     accept().pipe(EventStream.writeArray(function(err, message){
-      console.log("message : ", message);
+      // console.log("message : ", message);
       self.emit(TH.EventType.NEW_MESSAGE, {from:link.hashname, message:decoder.write(message[0])});
     }));
   });
@@ -63,7 +63,9 @@ TH.prototype.listen = function() {
 
 TH.generateEndpoint = function(cb) {
   Telehash.generate(function(err, endpoint) {
-    if (err) console.log("generate hashname error : " , err);
+    if (err) {
+      // console.log("generate hashname error : " , err);
+    }
     else cb(endpoint);
   });
 };
