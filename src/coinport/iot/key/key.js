@@ -58,6 +58,9 @@ Key.prototype.processCmd = function(cmd) {
         } else if (op == 'auth' || op == 'unauth') {
             self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
             console.log(op + ' ' + id + ' for ' + tid);
+        } else if (op == 'transfer') {
+            self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
+            console.log(op + ' right to ' + id);
         } else {
             console.log('unknown command');
         }
