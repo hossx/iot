@@ -127,6 +127,7 @@ BC.prototype.storeData = function(from, to, memo, callback) {
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.txid = result.result.record_id;
+            BC.printTransaction (from, to, memo, response.txid);
             callback(null, response);
         } else {
             //self.log.error("strorData error: ", error);
@@ -138,10 +139,11 @@ BC.prototype.storeData = function(from, to, memo, callback) {
 };
 
 BC.printTransaction = function(from, to, memo, txid) {
-    console.log('Sender:    \x1B[37m%s\x1B[37m', from);
-    console.log('Reciever:  \x1B[37m%s\x1B[37m', to);
-    console.log('Memo:      \x1B[31m%s\x1B[37m', memo);
-    console.log('交易Txid:  \x1B[32m%s\x1B[37m', txid);
+    console.log('在块链存储信息');
+    console.log('交易编号:      \x1B[31m%s\x1B[37m', txid);
+    console.log('交易发送方:    \x1B[37m%s\x1B[37m', from);
+    console.log('较易接收方:    \x1B[37m%s\x1B[37m', to);
+    console.log('交易信息:      \x1B[31m%s\x1B[37m', memo);
 };
 
 /**
@@ -349,6 +351,7 @@ BC.prototype.printTx_ = function(hight, tx) {
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
         if (!error && result.result) {
+            console.log('检测到交易');
             console.log('区块高度:      \x1B[37m%s\x1B[37m', hight);
             console.log('区块哈希:      \x1B[32m%s\x1B[37m', result.result.id);
             console.log('交易编号:      \x1B[31m%s\x1B[37m', tx.id);
