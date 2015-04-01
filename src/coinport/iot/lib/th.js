@@ -16,8 +16,9 @@ var TH = module.exports.TH = function(endpoint, cb) {
     var self = this;
     Telehash.mesh({id:this.endpoint}, function(err, mesh){
       self.mesh = mesh;
-      var linkR = self.mesh.link(self.router);
-      EventStream.readArray([0]).pipe(linkR.stream());
+      var linkR = self.mesh.link(self.router, function(e, l){
+        EventStream.readArray([0]).pipe(l.stream());
+      });
       // linkR.stream().pipe("ping router");
       self.emit('mesh_ready');
     });
