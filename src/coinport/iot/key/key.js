@@ -53,7 +53,7 @@ Key.prototype.processCmd = function(cmd) {
             console.log('unknown command');
         }
     } else {
-        if (cmd != 'bye')
+        if (cmd != 'bye' && cmd.replace(/^\s\s*/, '').replace(/\s\s*$/, '') != '')
             console.log('unknown command');
     }
 };
