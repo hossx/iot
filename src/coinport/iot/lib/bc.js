@@ -50,6 +50,7 @@ BC.httpOptions = {
 BC.prototype.logFunction = function log(type) {
     var self = this;
     return function() {
+        self.log.info("bc redis " + type);
     };
 };
 BC.EventType = {
@@ -60,6 +61,7 @@ BC.TX_AMOUNT = 1;
 BC.VALUE_UNIT = "BTS";
 
 BC.httpRequest_ = function(request, callback) {
+    var self = this;
     var err = null;
     var auth = Buffer(BC.rpcUser + ':' + BC.rpcPass).toString('base64');
     var req = http.request(BC.httpOptions, function(res) {
@@ -88,6 +90,7 @@ BC.httpRequest_ = function(request, callback) {
                 var parsedBuf = JSON.parse(body.data || body);
                 callback(null, parsedBuf);
             } catch(e) {
+                self.log.error("http: " + JSON.stringify(e));
                 return;
             }
         });
@@ -119,12 +122,13 @@ BC.prototype.storeData = function(from, to, memo, callback) {
     var request = JSON.stringify(requestBody);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("%j", result);
+        self.log.info("storeData request: " + request);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.txid = result.result.record_id;
             callback(null, response);
         } else {
+            self.log.error("strorData error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -150,6 +154,7 @@ BC.prototype.getAccountInfo = function(name, callback) {
             response.publicData = result.result.public_data;
             callback(null, response);
         } else {
+            self.log.error("getAccountInfo error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -170,6 +175,7 @@ BC.updateAccount = function(name, publicData, callback) {
             response.publicData = result.result.record_id;
             callback(null, response);
         } else {
+            self.log.error("updateAccount error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -186,6 +192,7 @@ BC.prototype.walletOpen_ = function(callback) {
         if (!error) {
             callback(null, result.result);
         } else {
+            self.log.error("walletOpen_ error: ", error);
             callback(error, null);
         }
     });
@@ -202,6 +209,7 @@ BC.prototype.walletUnlock_ = function(callback) {
         if (!error) {
             callback(null, result.result);
         } else {
+            self.log.error("walletUnlock_ error: ", error);
             callback(error, null);
         }
     });
@@ -219,6 +227,7 @@ BC.prototype.initWallet_ = function(callback) {
             if (error) {
                 callback(error, null);
             } else {
+                self.log.info("initWallet ok!");
                 callback(null, result);
             }
         });
@@ -229,7 +238,7 @@ BC.prototype.initWallet_ = function(callback) {
 
 BC.prototype.start = function() {
     var self = this;
-    self.initWallet_(function(error, reuslt) {
+    self.initWallet_(function(error, result) {
         if (!error) {
             self.checkBlockAfterDelay_();
             self.unlockWalletAfterDelay_();
@@ -289,6 +298,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
             callback(error);
         } else {
             if (height == count) {
+                self.log.info('no new block found');
                 callback('no new block found');
             } else {
                 params.push(height);
@@ -302,6 +312,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                                 var tx = new Object();
                                 tx.from = result.result[i].ledger_entries[j].from_account;
                                 tx.memo = result.result[i].ledger_entries[j].memo;
+                                self.log.info("EMIT tx: " + JSON.stringify(tx));
                                 self.emit(BC.EventType.NEW_INFO, tx);
                                 response.push(tx);
                             }
