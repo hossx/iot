@@ -7,8 +7,8 @@ var Async                         = require('async'),
     Events                        = require('events'),
     Util                          = require("util"),
     http                          = require('http'),
-    Redis                         = require('redis'),
-    Logger                        = require('./logger');
+    Redis                         = require('redis');
+    //Logger                        = require('./logger');
 
 /**
  * Send the bts tx with auth info(memo)
@@ -32,7 +32,7 @@ var BC = module.exports.BC = function(deviceId) {
     this.lastIndex = 'bc_last_index';
     this.walletName = "hoss";
     this.walletPassPhrase = "qwerqwer";
-    this.log = Logger.logger("1000");
+    //this.log = Logger.logger("1000");
 };
 Util.inherits(BC, Events.EventEmitter);
 
@@ -50,7 +50,7 @@ BC.httpOptions = {
 BC.prototype.logFunction = function log(type) {
     var self = this;
     return function() {
-        self.log.info("bc redis " + type);
+        //self.log.info("bc redis " + type);
     };
 };
 BC.EventType = {
@@ -90,7 +90,7 @@ BC.httpRequest_ = function(request, callback) {
                 var parsedBuf = JSON.parse(body.data || body);
                 callback(null, parsedBuf);
             } catch(e) {
-                self.log.error("http: " + JSON.stringify(e));
+                console.log(e);
                 return;
             }
         });
@@ -122,17 +122,26 @@ BC.prototype.storeData = function(from, to, memo, callback) {
     var request = JSON.stringify(requestBody);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        self.log.info("storeData request: " + request);
+        //self.log.info("storeData request: " + request);
+        //self.log.info("strorData result: ", JSON.stringify(result));
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.txid = result.result.record_id;
             callback(null, response);
         } else {
-            self.log.error("strorData error: ", error);
+            //self.log.error("strorData error: ", error);
+            //self.log.error("strorData error: ", result);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
     });
+};
+
+BC.printTransaction = function(from, to, memo, txid) {
+    console.log('Sender:    \x1B[37m%s\x1B[37m', from);
+    console.log('Reciever:  \x1B[37m%s\x1B[37m', to);
+    console.log('Memo:      \x1B[31m%s\x1B[37m', memo);
+    console.log('交易Txid:  \x1B[32m%s\x1B[37m', txid);
 };
 
 /**
@@ -154,7 +163,7 @@ BC.prototype.getAccountInfo = function(name, callback) {
             response.publicData = result.result.public_data;
             callback(null, response);
         } else {
-            self.log.error("getAccountInfo error: ", error);
+            //self.log.error("getAccountInfo error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -175,7 +184,7 @@ BC.updateAccount = function(name, publicData, callback) {
             response.publicData = result.result.record_id;
             callback(null, response);
         } else {
-            self.log.error("updateAccount error: ", error);
+            //self.log.error("updateAccount error: ", error);
             response.flag = "FAILED";
             callback("FAILED", response);
         }
@@ -192,7 +201,7 @@ BC.prototype.walletOpen_ = function(callback) {
         if (!error) {
             callback(null, result.result);
         } else {
-            self.log.error("walletOpen_ error: ", error);
+            //self.log.error("walletOpen_ error: ", error);
             callback(error, null);
         }
     });
@@ -209,7 +218,7 @@ BC.prototype.walletUnlock_ = function(callback) {
         if (!error) {
             callback(null, result.result);
         } else {
-            self.log.error("walletUnlock_ error: ", error);
+            //self.log.error("walletUnlock_ error: ", error);
             callback(error, null);
         }
     });
@@ -227,7 +236,7 @@ BC.prototype.initWallet_ = function(callback) {
             if (error) {
                 callback(error, null);
             } else {
-                self.log.info("initWallet ok!");
+                //self.log.info("initWallet ok!");
                 callback(null, result);
             }
         });
@@ -298,7 +307,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
             callback(error);
         } else {
             if (height == count) {
-                self.log.info('no new block found');
+                //self.log.info('no new block found');
                 callback('no new block found');
             } else {
                 params.push(height);
@@ -310,9 +319,12 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                         for (var i = 0; i < result.result.length; i++) {
                             for (var j = 0; j < result.result[i].ledger_entries.length; j++) {
                                 var tx = new Object();
+                                tx.id = result.result[i].trx_id;
+                                tx.isConfirmed = result.result[i].is_confirmed;
                                 tx.from = result.result[i].ledger_entries[j].from_account;
+                                tx.to = result.result[i].ledger_entries[j].to_account;
                                 tx.memo = result.result[i].ledger_entries[j].memo;
-                                self.log.info("EMIT tx: " + JSON.stringify(tx));
+                                self.printTx_(height, tx);
                                 self.emit(BC.EventType.NEW_INFO, tx);
                                 response.push(tx);
                             }
@@ -325,7 +337,30 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
             }
         }
     });
-}
+};
+
+
+BC.prototype.printTx_ = function(hight, tx) {
+    var self = this;
+    var params = [];
+    params.push(hight);
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_block", params: params};
+    var request = JSON.stringify(requestBody);
+    var response = new Object();
+    BC.httpRequest_(request, function(error, result) {
+        if (!error && result.result) {
+            console.log('区块高度:      \x1B[37m%s\x1B[37m', hight);
+            console.log('区块哈希:      \x1B[32m%s\x1B[37m', result.result.id);
+            console.log('交易编号:      \x1B[31m%s\x1B[37m', tx.id);
+            console.log('是否确认:      \x1B[37m%s\x1B[37m', tx.isConfirmed);
+            console.log('交易发送方:    \x1B[37m%s\x1B[37m', tx.from);
+            console.log('交易接收方:    \x1B[37m%s\x1B[37m', tx.to);
+            console.log('交易备注:      \x1B[37m%s\x1B[37m', tx.memo);
+        } else {
+            console.log("blockchain_get_block error %j", error);
+        }
+    });
+};
 
 BC.prototype.getBlockCount_ = function(callback) {
     var self = this;
