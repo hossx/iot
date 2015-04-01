@@ -132,83 +132,57 @@ BC.prototype.storeData = function(from, to, memo, callback) {
 };
 
 /**
- * get the bts account private key
- * @param {string} name the readable name of account
- * @return {object}  
+ * Get the bts account info
+ * @param {String} name The readable name of account
+ * @return {String} publicData in bts
  */
-BC.prototype.getPrivateKey = function(name, callback) {
+BC.prototype.getAccountInfo = function(name, callback) {
     var self = this;
     var params = [];
     params.push(name);
-    params.push("owner_key");
-    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_dump_account_private_key", params: params};
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_account", params: params};
     var request = JSON.stringify(requestBody);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("%j", result);
         if (!error && result.result) {
-            response.flag = "successed";
-            response.privateKey = result.result;
-            callback(null, response);
-        } else {
-            response.flag = "failed";
-            callback("failed", response);
-        }
-    });
-};
-
-/**
- * get the bts account info
- * @param {string} name the readable name of account
- * @return {string} publicdata in bts
- */
-BC.prototype.getaccountinfo = function(name, callback) {
-    var self = this;
-    var params = [];
-    params.push(name);
-    var requestbody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_account", params: params};
-    var request = json.stringify(requestbody);
-    var response = new object();
-    bc.httprequest_(request, function(error, result) {
-        if (!error && result.result) {
-            response.flag = "successed";
+            response.flag = "SUCCESSED";
             response.name = result.result.name;
-            response.publicdata = result.result.public_data;
+            response.publicData = result.result.public_data;
             callback(null, response);
         } else {
-            response.flag = "failed";
-            callback("failed", response);
+            response.flag = "FAILED";
+            callback("FAILED", response);
         }
     });
 };
 
-BC.updateaccount = function(name, publicdata, callback) {
+BC.updateAccount = function(name, publicData, callback) {
     var params = [];
     params.push(name);
     params.push(name);
-    params.push(publicdata);
-    var requestbody = {jsonrpc: '2.0', id: 2, method: "wallet_account_update_registration", params: params};
-    var request = json.stringify(requestbody);
-    var response = new object();
-    bc.httprequest_(request, function(error, result) {
+    params.push(publicData);
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_update_registration", params: params};
+    var request = JSON.stringify(requestBody);
+    var response = new Object();
+    BC.httpRequest_(request, function(error, result) {
         if (!error && result.result) {
-            response.flag = "successed";
-            response.publicdata = result.result.record_id;
+            response.flag = "SUCCESSED";
+            response.publicData = result.result.record_id;
             callback(null, response);
         } else {
-            response.flag = "failed";
-            callback("failed", response);
+            response.flag = "FAILED";
+            callback("FAILED", response);
         }
     });
 };
 
-BC.prototype.walletopen_ = function(callback) {
+BC.prototype.walletOpen_ = function(callback) {
     var self = this;
     var params = [];
-    params.push(self.walletname);
-    var requestbody = {jsonrpc: '2.0', id: 2, method: "wallet_open", params: params};
-    var request = json.stringify(requestbody);
-    bc.httprequest_(request, function(error, result) {
+    params.push(self.walletName);
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_open", params: params};
+    var request = JSON.stringify(requestBody);
+    BC.httpRequest_(request, function(error, result) {
         if (!error) {
             callback(null, result.result);
         } else {
@@ -217,14 +191,14 @@ BC.prototype.walletopen_ = function(callback) {
     });
 };
 
-BC.prototype.walletunlock_ = function(callback) {
+BC.prototype.walletUnlock_ = function(callback) {
     var self = this;
     var params = [];
     params.push(3600);
-    params.push(self.walletpassphrase);
-    var requestbody = {jsonrpc: '2.0', id: 2, method: "wallet_unlock", params: params};
-    var request = json.stringify(requestbody);
-    BC.httprequest_(request, function(error, result) {
+    params.push(self.walletPassPhrase);
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_unlock", params: params};
+    var request = JSON.stringify(requestBody);
+    BC.httpRequest_(request, function(error, result) {
         if (!error) {
             callback(null, result.result);
         } else {
@@ -233,14 +207,14 @@ BC.prototype.walletunlock_ = function(callback) {
     });
 };
 
-BC.prototype.initwallet_ = function(callback) {
+BC.prototype.initWallet_ = function(callback) {
     var self = this;
-    if (self.walletname && self.walletpassphrase) {
-        async.series([
+    if (self.walletName && self.walletPassPhrase) {
+        Async.series([
             function(cb) {
-                self.walletopen_.bind(self)(cb)},
+                self.walletOpen_.bind(self)(cb)},
             function(cb) {
-                self.walletunlock_.bind(self)(cb)}
+                self.walletUnlock_.bind(self)(cb)}
         ], function(error, result) {
             if (error) {
                 callback(error, null);
@@ -255,28 +229,28 @@ BC.prototype.initwallet_ = function(callback) {
 
 BC.prototype.start = function() {
     var self = this;
-    self.initwallet_(function(error, reuslt) {
+    self.initWallet_(function(error, reuslt) {
         if (!error) {
-            self.checkblockafterdelay_();
-            self.unlockwalletafterdelay_();
+            self.checkBlockAfterDelay_();
+            self.unlockWalletAfterDelay_();
         } else {
         }
     });
 };
 
-BC.prototype.checkblock_ = function() {
+BC.prototype.checkBlock_ = function() {
     var self = this;
-    self.getnextccblock_(function(error, result){
+    self.getNextCCBlock_(function(error, result){
         if (!error) {
-            self.redis.set(self.lastindex, result, function(errorredis, retredis) {
-                if (!errorredis) {
-                    self.checkblockafterdelay_(0);
+            self.redis.set(self.lastIndex, result, function(errorRedis, retRedis) {
+                if (!errorRedis) {
+                    self.checkBlockAfterDelay_(0);
                 } else {
-                    self.checkblockafterdelay_(1000);
+                    self.checkBlockAfterDelay_(1000);
                 }
             });
         } else {
-            self.checkblockafterdelay_();
+            self.checkBlockAfterDelay_();
         }
    });
 };
