@@ -19,6 +19,14 @@ var Door = module.exports.Door = function(deviceId) {
 
 Door.prototype.init = function() {
     var self = this;
+    BC.getPrivateKey(self.did, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('pubkey: ' + self.did);
+            console.log('prvKey: ' + response.privateKey);
+        }
+    });
     this.redisClient.smembers('auth', function(error, keys) {
         if (error) {
             console.log("can't load the auth info.");
@@ -29,7 +37,6 @@ Door.prototype.init = function() {
                 process.exit(1);
             } else {
                 self.initKeys(keys);
-                console.log('init authed keys were loaded');
             }
         }
     });
@@ -39,7 +46,7 @@ Door.prototype.init = function() {
             console.log(error);
         } else {
             self.isDoorOpened = (s == 'true');
-            console.log('door status is loaded');
+            console.log('The door is ' + (self.isDoorOpened ? 'opened' : 'closed'));
         }
     });
 
@@ -50,7 +57,6 @@ Door.prototype.init = function() {
             console.log(error);
         } else {
             self.endpoint = JSON.parse(endpointStr);
-            console.log('listen on telenet');
             self.th = new TH(self.endpoint);
             self.th.on(TH.EventType.MESH_READY, function() {
                 self.th.listen();
@@ -94,7 +100,6 @@ Door.prototype.init = function() {
 
 Door.prototype.listenOnBc = function() {
     var self = this;
-    console.log('listen on blockchain');
     this.bc.start()
     this.bc.on(BC.EventType.NEW_INFO, function(info) {
         if (info.from in self.authedKeys.keys) {
@@ -152,5 +157,6 @@ Door.prototype.initKeys = function(initAuthedKeys) {
             self.authedKeys.keys[completedKeys[i].name] = completedKeys[i].publicData;
             self.authedKeys.hashs[completedKeys[i].publicData] = completedKeys[i].name;
         }
+        console.log('The authed keys: ' + Object.keys(self.authedKeys.keys));
     });
 };

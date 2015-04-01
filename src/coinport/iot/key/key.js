@@ -23,6 +23,15 @@ var Key = module.exports.Key = function(deviceId) {
             self.th = new TH(self.endpoint);
         }
     });
+
+    BC.getPrivateKey(self.did, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('pubkey: ' + self.did);
+            console.log('prvKey: ' + response.privateKey);
+        }
+    });
 };
 
 Key.prototype.processCmd = function(cmd) {

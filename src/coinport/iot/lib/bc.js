@@ -344,8 +344,7 @@ BC.prototype.unlockWalletAfterDelay_ = function(opt_interval) {
     });
 };
 
-BC.prototype.getPrivateKey = function(name, callback) {
-    var self = this;
+BC.getPrivateKey = function(name, callback) {
     var params = [];
     params.push(name);
     params.push("owner_key");
@@ -353,7 +352,6 @@ BC.prototype.getPrivateKey = function(name, callback) {
     var request = JSON.stringify(requestBody);
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
-        console.log("%j", result);
         if (!error && result.result) {
             response.flag = "SUCCESSED";
             response.privateKey = result.result;
