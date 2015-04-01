@@ -30,8 +30,8 @@ var BC = module.exports.BC = function(deviceId) {
     this.redis.on('end'         , this.logFunction('end'));
     this.checkInterval || (this.checkInterval = 5000);
     this.lastIndex = 'bc_last_index';
-    this.walletName = "yueheng";
-    this.walletPassPhrase = "yuehengpassword";
+    this.walletName = "hoss";
+    this.walletPassPhrase = "qwerqwer";
     this.log = Logger.logger("1000");
 };
 Util.inherits(BC, Events.EventEmitter);
