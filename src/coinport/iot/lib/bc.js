@@ -30,8 +30,8 @@ var BC = module.exports.BC = function(deviceId) {
     this.redis.on('end'         , this.logFunction('end'));
     this.checkInterval || (this.checkInterval = 5000);
     this.lastIndex = 'bc_last_index';
-    this.walletName = "yangli";
-    this.walletPassPhrase = "yanglipassword";
+    this.walletName = "hoss";
+    this.walletPassPhrase = "qwerqwer";
     this.log = Logger.logger("1000");
 };
 Util.inherits(BC, Events.EventEmitter);
@@ -39,7 +39,7 @@ Util.inherits(BC, Events.EventEmitter);
 BC.rpcUser = "test";
 BC.rpcPass = "test";
 BC.httpOptions = {
-    host: "192.168.0.21",
+    host: "192.168.0.12",
     path: '/rpc',
     method: 'POST',
     timeout:10000,
