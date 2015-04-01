@@ -98,6 +98,8 @@ BC.httpRequest_ = function(request, callback) {
 
     req.on('error', function(e) {
         var err = new Error('Could not connect to bc via RPC: '+e.message);
+        console.log("RPC ERROR!");
+        callback("error", null);
     });
 
     req.setHeader('Accept', 'application/json, text/plain, */*');
@@ -237,8 +239,9 @@ BC.prototype.initWallet_ = function(callback) {
         ], function(error, result) {
             if (error) {
                 callback(error, null);
+                //console.log("initWallet error!");
             } else {
-                //self.log.info("initWallet ok!");
+                //console.log("initWallet ok!");
                 callback(null, result);
             }
         });
@@ -309,14 +312,15 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
             callback(error);
         } else {
             if (height == count) {
-                //self.log.info('no new block found');
+                //console.log('no new block found');
                 callback('no new block found');
             } else {
                 params.push(height);
                 var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_transaction_history", params: params};
                 var request = JSON.stringify(requestBody);
+                //console.log(request);
                 BC.httpRequest_(request, function(error, result) {
-                    if(!error) {
+                    if(!error && result && result.result) {
                         var response = [];
                         for (var i = 0; i < result.result.length; i++) {
                             for (var j = 0; j < result.result[i].ledger_entries.length; j++) {
@@ -331,7 +335,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                                 response.push(tx);
                             }
                         }
-                        callback(null, count);
+                        callback(null, height+1);
                     } else {
                         callback(error, null);
                     }
@@ -360,7 +364,7 @@ BC.prototype.printTx_ = function(hight, tx) {
             console.log('交易接收方:    \x1B[37m%s\x1B[37m', tx.to);
             console.log('交易备注:      \x1B[37m%s\x1B[37m', tx.memo);
         } else {
-            console.log("blockchain_get_block error %j", error);
+            //console.log("blockchain_get_block error %j", error);
         }
     });
 };
@@ -370,7 +374,11 @@ BC.prototype.getBlockCount_ = function(callback) {
     var requestBody = {jsonrpc: '2.0', id: 2, method: "blockchain_get_blockcount", params: []};
     var request = JSON.stringify(requestBody);
     BC.httpRequest_(request, function(error, result) {
-        callback(error, result.result);
+        if (!error) {
+            callback(error, result.result);
+        } else {
+            callback(error, null);
+        }
     });
 };
 
