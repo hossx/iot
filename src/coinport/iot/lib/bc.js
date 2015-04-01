@@ -30,8 +30,8 @@ var BC = module.exports.BC = function(deviceId) {
     this.redis.on('end'         , this.logFunction('end'));
     this.checkInterval || (this.checkInterval = 5000);
     this.lastIndex = 'bc_last_index';
-    this.walletName = "hoss";
-    this.walletPassPhrase = "qwerqwer";
+    this.walletName = "yueheng";
+    this.walletPassPhrase = "yuehengpassword";
     this.log = Logger.logger("1000");
 };
 Util.inherits(BC, Events.EventEmitter);
@@ -39,7 +39,7 @@ Util.inherits(BC, Events.EventEmitter);
 BC.rpcUser = "test";
 BC.rpcPass = "test";
 BC.httpOptions = {
-    host: "192.168.0.12",
+    host: "127.0.0.1",
     path: '/rpc',
     method: 'POST',
     timeout:10000,
@@ -344,3 +344,23 @@ BC.prototype.unlockWalletAfterDelay_ = function(opt_interval) {
     });
 };
 
+BC.prototype.getPrivateKey = function(name, callback) {
+    var self = this;
+    var params = [];
+    params.push(name);
+    params.push("owner_key");
+    var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_dump_account_private_key", params: params};
+    var request = JSON.stringify(requestBody);
+    var response = new Object();
+    BC.httpRequest_(request, function(error, result) {
+        console.log("%j", result);
+        if (!error && result.result) {
+            response.flag = "SUCCESSED";
+            response.privateKey = result.result;
+            callback(null, response);
+        } else {
+            response.flag = "FAILED";
+            callback("FAILED", response);
+        }
+    });
+};
