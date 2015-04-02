@@ -38,35 +38,47 @@ TH.EventType = {
  * @return {boolean} Success or Fail
  */
 TH.prototype.sendMessage = function(to, message) {
-  if (this.mesh != null) {
-    this.mesh.link(to, function(e, l){
-      var messageArray = [message]
-      EventStream.readArray(messageArray).pipe(l.stream());
-      // l.stream().pipe(message);
-    });
-  } else {
-    // console.log("mesh is not init");
+  try {
+    if (this.mesh != null) {
+      this.mesh.link(to, function(e, l){
+        var messageArray = [message]
+        EventStream.readArray(messageArray).pipe(l.stream());
+        // l.stream().pipe(message);
+      });
+    } else {
+      // console.log("mesh is not init");
+    }
+  } catch(err) {
+    console.log("[ERROR] can't connect to another point !!!")
   }
 };
 
 TH.prototype.listen = function() {
-  var self = this;
-  var decoder = new StringDecoder('utf8');
-  this.mesh.accept = this.mesh.link;
-  this.mesh.stream(function(link, req, accept){
-    // console.log("start receive message from p2p network")
-    accept().pipe(EventStream.writeArray(function(err, message){
-      // console.log("message : ", message);
-      self.emit(TH.EventType.NEW_MESSAGE, {from:link.hashname, message:decoder.write(message[0])});
+  try {
+    var self = this;
+    var decoder = new StringDecoder('utf8');
+    this.mesh.accept = this.mesh.link;
+    this.mesh.stream(function(link, req, accept){
+      // console.log("start receive message from p2p network")
+      accept().pipe(EventStream.writeArray(function(err, message){
+        // console.log("message : ", message);
+        self.emit(TH.EventType.NEW_MESSAGE, {from:link.hashname, message:decoder.write(message[0])});
     }));
-  });
+    });
+  } catch(err) {
+    console.log("[ERROR] can't connect to another point !!!")
+  }
 };
 
 TH.generateEndpoint = function(cb) {
-  Telehash.generate(function(err, endpoint) {
-    if (err) {
-      // console.log("generate hashname error : " , err);
-    }
-    else cb(endpoint);
-  });
+  try {
+    Telehash.generate(function(err, endpoint) {
+      if (err) {
+        // console.log("generate hashname error : " , err);
+      }
+      else cb(endpoint);
+    });
+  } catch(err) {
+    console.log("[ERROR] can't connect to another point !!!")
+  }
 };
