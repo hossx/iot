@@ -39,7 +39,7 @@ Util.inherits(BC, Events.EventEmitter);
 BC.rpcUser = "test";
 BC.rpcPass = "test";
 BC.httpOptions = {
-    host: "127.0.0.1",
+    host: "192.168.0.21",
     path: '/rpc',
     method: 'POST',
     timeout:10000,
@@ -319,7 +319,7 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                 var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_transaction_history", params: params};
                 var request = JSON.stringify(requestBody);
                 BC.httpRequest_(request, function(error, result) {
-                    if(!error && result) {
+                    if(!error) {
                         var response = [];
                         for (var i = 0; i < result.result.length; i++) {
                             for (var j = 0; j < result.result[i].ledger_entries.length; j++) {
