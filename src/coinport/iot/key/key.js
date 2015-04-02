@@ -56,7 +56,11 @@ Key.prototype.processCmd = function(cmd) {
                 }
             });
         } else if (op == 'auth' || op == 'unauth') {
-            self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
+            self.bc.storeData(self.did, tid, op + ' ' + id, function(error, resp) {
+                if (error) {
+                    console.log(error);
+                }
+            });
             console.log(op + ' ' + id + ' for ' + tid);
         } else if (op == 'transfer') {
             self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
