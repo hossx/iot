@@ -318,9 +318,8 @@ BC.prototype.getWalletTransactionByIndex_ = function(height, callback) {
                 params.push(height);
                 var requestBody = {jsonrpc: '2.0', id: 2, method: "wallet_account_transaction_history", params: params};
                 var request = JSON.stringify(requestBody);
-                //console.log(request);
                 BC.httpRequest_(request, function(error, result) {
-                    if(!error && result && result.result) {
+                    if(!error && result) {
                         var response = [];
                         for (var i = 0; i < result.result.length; i++) {
                             for (var j = 0; j < result.result[i].ledger_entries.length; j++) {
