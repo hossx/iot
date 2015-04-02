@@ -39,7 +39,7 @@ Util.inherits(BC, Events.EventEmitter);
 BC.rpcUser = "test";
 BC.rpcPass = "test";
 BC.httpOptions = {
-    host: "192.168.0.21",
+    host: "127.0.0.1",
     path: '/rpc',
     method: 'POST',
     timeout:10000,
