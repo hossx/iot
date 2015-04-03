@@ -16,6 +16,20 @@ var Door = module.exports.Door = function(deviceId) {
     this.admin = null;
     this.bc = new BC(this.did);
     this.isDoorOpened = false;
+    this.doorOk = false;
+    this.adminOk = false;
+    this.authOk = false;
+};
+
+Door.prototype.printStats = function() {
+    if (this.doorOk && this.adminOk && this.authOk) {
+        console.log();
+        console.log('\n======================================================' +
+            '\n锁状态：\t\t' + (this.isDoorOpened ? '打开' : '关闭') +
+            '\n管理员：\n\t\t' + this.admin +
+            '\n已授权钥匙：\n\t\t' + Object.keys(this.authedKeys.keys).join('\n\t\t') +
+            '\n======================================================');
+    }
 };
 
 Door.prototype.init = function() {
@@ -24,13 +38,12 @@ Door.prototype.init = function() {
         if (error) {
             console.log(error);
         } else {
-            console.log('pubkey: ' + self.did);
-            console.log('prvKey: ' + response.privateKey);
+            console.log('\n公钥: \t' + self.did + '\n' + '私钥: \t' + response.privateKey);
         }
     });
     this.redisClient.smembers('auth', function(error, keys) {
         if (error) {
-            console.log("can't load the auth info.");
+            console.log("无法获取认证钥匙信息");
             process.exit(1);
         } else {
             if (keys.length != 0) {
@@ -44,17 +57,19 @@ Door.prototype.init = function() {
             console.log(error);
         } else {
             self.isDoorOpened = (s == 'true');
-            console.log('The door is ' + (self.isDoorOpened ? 'opened' : 'closed'));
+            self.doorOk = true;
+            self.printStats();
         }
     });
 
     this.redisClient.get('admin', function(error, s) {
         if (error) {
-            console.log('Mush has an admin!');
+            console.log('锁必须有初始管理员');
             process.exit(1);
         } else {
             self.admin = s;
-            console.log('The admin is: ' + self.admin);
+            self.adminOk = true;
+            self.printStats();
         }
     });
 
@@ -71,35 +86,36 @@ Door.prototype.init = function() {
             });
             self.th.on(TH.EventType.NEW_MESSAGE, function(message) {
                 if (message.from in self.authedKeys.hashs) {
+                    console.log('收到命令：\t' + message.message + '\n' + '来自钥匙：\t' + self.authedKeys.hashs[message.from]);
                     if (message.message == 'open') {
                         if (self.isDoorOpened) {
-                            console.log('The door has been opened.');
+                            console.log('锁已经处于打开状态');
                         } else {
                             self.isDoorOpened = true;
                             self.redisClient.set('doorStatus', self.isDoorOpened, function(error, redisResp) {
                                 if (error) {
                                     console.log(error + ' ' + redisResp);
                                 } else {
-                                    console.log('The door is opened.');
+                                    self.printStats();
                                 }
                             });
                         }
                     } else if (message.message == 'close') {
                         if (!self.isDoorOpened) {
-                            console.log('The door has been closed.');
+                            console.log('锁已经处于关闭状态');
                         } else {
                             self.isDoorOpened = false;
                             self.redisClient.set('doorStatus', self.isDoorOpened, function(error, redisResp) {
                                 if (error) {
                                     console.log(error + ' ' + redisResp);
                                 } else {
-                                    console.log('The door is closed.');
+                                    self.printStats();
                                 }
                             });
                         }
                     }
                 } else {
-                    console.log('The device isn`t authenticated with hashname: ' + message.from);
+                    console.log('此钥匙未通过授权: ' + message.from);
                 }
             });
         }
@@ -111,6 +127,7 @@ Door.prototype.listenOnBc = function() {
     this.bc.start()
     this.bc.on(BC.EventType.NEW_INFO, function(info) {
         if (info.from == self.admin) {
+            console.log('收到命令：\t' + info.memo + '\n' + '来自钥匙：\t' + info.from);
             var parsedCmd = info.memo.split(' ');
             if (parsedCmd.length == 2) {
                 cmd = parsedCmd[0];
@@ -122,13 +139,13 @@ Door.prototype.listenOnBc = function() {
                 } else if (cmd == 'transfer') {
                     self.transferKey(newKey);
                 } else {
-                    console.log('unknown cmd: ' + JSON.stringify(info));
+                    console.log('未知命令: ' + info.memo);
                 }
             } else {
-                console.log('unknown cmd: ' + JSON.stringify(info));
+                console.log('未知命令: ' + info.memo);
             }
         } else {
-            console.log('Isn\'t admin, Can\'t exec cmd: ' + JSON.stringify(info));
+            console.log('非管理员无法执行命令: ' + info.memo);
         }
     });
 };
@@ -136,14 +153,14 @@ Door.prototype.listenOnBc = function() {
 Door.prototype.transferKey = function(key) {
     var self = this;
     if (self.admin == key) {
-        console.log('Ignore transfering right to self');
+        self.printStats();
     } else {
         self.redisClient.set('admin', key, function(error, redisResp) {
             if (error) {
                 console.log(error);
             } else {
                 self.admin = key;
-                console.log('Now, the admin becomes: ' + self.admin);
+                self.printStats();
             }
         });
     }
@@ -161,8 +178,7 @@ Door.prototype.authKey = function(key, keyMap) {
                 if (err) {
                     console.log(err + ' ' + redisResp);
                 } else {
-                    console.log(key + ' is authenticated');
-                    console.log('The authed keys for now: ' + Object.keys(keyMap.keys))
+                    self.printStats();
                 }
             });
         }
@@ -170,6 +186,7 @@ Door.prototype.authKey = function(key, keyMap) {
 };
 
 Door.prototype.unauthKey = function(key, keyMap) {
+    var self = this;
     var hash = keyMap.keys[key];
     delete keyMap.keys[key];
     delete keyMap.hashs[hash];
@@ -177,7 +194,7 @@ Door.prototype.unauthKey = function(key, keyMap) {
         if (error) {
             console.log(error + ' ' + redisResp);
         } else {
-            console.log(key + ' is unauthenticated');
+            self.printStats();
         }
     });
 };
@@ -189,6 +206,7 @@ Door.prototype.initKeys = function(initAuthedKeys) {
             self.authedKeys.keys[completedKeys[i].name] = completedKeys[i].publicData;
             self.authedKeys.hashs[completedKeys[i].publicData] = completedKeys[i].name;
         }
-        console.log('The authed keys: ' + Object.keys(self.authedKeys.keys));
+        self.authOk = true;
+        self.printStats();
     });
 };

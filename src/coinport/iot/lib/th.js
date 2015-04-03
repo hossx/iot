@@ -10,7 +10,7 @@ var Events     = require('events'),
     StringDecoder = require('string_decoder').StringDecoder;
 
 // enable debug log for telehash
-Telehash.log({debug:console.log});
+// Telehash.log({debug:console.log});
 
 var TH = module.exports.TH = function(endpoint, cb) {
     Events.EventEmitter.call(this);

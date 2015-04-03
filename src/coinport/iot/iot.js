@@ -41,7 +41,7 @@ var init = function(did) {
 
 if (op == 'init') {
     init(did);
-} else if (op == 'door') {
+} else if (op == 'lock') {
     var door = new Door(did);
     door.init();
 } else if (op == 'key') {
