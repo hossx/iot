@@ -12,7 +12,10 @@ var Door = module.exports.Door = function(deviceId) {
     this.did = deviceId;
     this.endpoint = {};
     this.redisClient = Redis.createClient(6379, 'localhost');
-    this.authedKeys = {keys:{}, hashs:{}, remb:{}};
+    this.authedKeys = {keys:{}, hashs:{}, remb:{
+        '66taivgx3oljycw2ffr5hlc6pimkopkm2ezoh7a5kfkp2dn72g2a':'bts5h8p1xfyuze26n4amos',
+        'ibuu4stjkkv7ws7aif4rumrwe42leiuukhtqidesb77erfu4yxxa':'bts5nczsauqoumn3v3zk74'
+    }};
     this.admin = null;
     this.bc = new BC(this.did);
     this.isDoorOpened = false;
