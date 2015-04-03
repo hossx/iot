@@ -141,12 +141,13 @@ BC.prototype.storeData = function(from, to, memo, callback) {
 };
 
 BC.printTransaction = function(from, to, memo, txid) {
+    console.log('\x1B[90m');
     console.log('在块链存储信息');
-    console.log('');
-    console.log('交易编号:      \x1B[90m%s\x1B[37m', txid);
-    console.log('交易发送方:    \x1B[37m%s\x1B[37m', from);
-    console.log('较易接收方:    \x1B[37m%s\x1B[37m', to);
+    console.log('交易编号:      \x1B[31m%s\x1B[90m', txid);
+    console.log('交易发送方:    \x1B[37m%s\x1B[90m', from);
+    console.log('较易接收方:    \x1B[37m%s\x1B[90m', to);
     console.log('交易信息:      \x1B[31m%s\x1B[37m', memo);
+    console.log('');
 };
 
 /**
@@ -354,8 +355,8 @@ BC.prototype.printTx_ = function(hight, tx) {
     var response = new Object();
     BC.httpRequest_(request, function(error, result) {
         if (!error && result.result) {
-            console.log('检测到交易');
             console.log('');
+            console.log('检测到交易');
             console.log('区块高度:      \x1B[37m%s\x1B[37m', hight);
             console.log('区块哈希:      \x1B[32m%s\x1B[37m', result.result.id);
             console.log('交易编号:      \x1B[31m%s\x1B[37m', tx.id);
@@ -363,6 +364,7 @@ BC.prototype.printTx_ = function(hight, tx) {
             console.log('交易发送方:    \x1B[37m%s\x1B[37m', tx.from);
             console.log('交易接收方:    \x1B[37m%s\x1B[37m', tx.to);
             console.log('交易备注:      \x1B[37m%s\x1B[37m', tx.memo);
+            console.log('');
             self.emit(BC.EventType.NEW_INFO, tx);
         } else {
             //console.log("blockchain_get_block error %j", error);
