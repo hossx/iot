@@ -85,6 +85,7 @@ Door.prototype.init = function() {
                 self.th.listen();
             });
             self.th.on(TH.EventType.NEW_MESSAGE, function(message) {
+                console.log('建立连接到：\t' + message.from)
                 if (message.from in self.authedKeys.hashs) {
                     console.log('收到命令：\t' + message.message + '\n' + '来自钥匙：\t' + self.authedKeys.hashs[message.from]);
                     if (message.message == 'open') {

@@ -28,8 +28,8 @@ var Key = module.exports.Key = function(deviceId) {
         if (error) {
             console.log(error);
         } else {
-            console.log('pubkey: ' + self.did);
-            console.log('prvKey: ' + response.privateKey);
+            console.log('\n公钥:\t' + self.did);
+            console.log('私钥:\t' + response.privateKey);
         }
     });
 };
@@ -44,14 +44,15 @@ Key.prototype.processCmd = function(cmd) {
         if (op == 'open' || op == 'close') {
             self.bc.getAccountInfo(id, function(error, keyHash) {
                 if (error || !keyHash) {
-                    console.log('can\'t find the hash for key: ' + id);
+                    console.log('找不到此锁的hashname: ' + id);
                 } else {
                     var hash = keyHash.publicData;
                     if (hash) {
                         self.th.sendMessage(hash, op);
-                        console.log(op + ' the door: ' + id + '(' + hash + ')')
+                        console.log('\n已连接：\t' + hash);
+                        console.log('发送请求:\t' + op + ' 到: ' + id + '(' + hash + ')')
                     } else {
-                        console.log('can\'t find the hash for key: ' + id);
+                        console.log('找不到此锁的hashname: ' + id);
                     }
                 }
             });
@@ -61,10 +62,10 @@ Key.prototype.processCmd = function(cmd) {
                     console.log(error);
                 }
             });
-            console.log(op + ' ' + id + ' for ' + tid);
+            console.log('\n发送请求:\t' + op + ' ' + id + ' 到 ' + tid);
         } else if (op == 'transfer') {
             self.bc.storeData(self.did, tid, op + ' ' + id, function() {});
-            console.log(op + ' right to ' + id);
+            console.log('\n发送请求:\t' + op + ' ' + id + ' 到 ' + tid);
         } else {
             console.log('unknown command');
         }
