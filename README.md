@@ -10,6 +10,6 @@ Add init authed keys:
 
 SADD auth cpkey1
 
-- door: bts5nba4eojxcrxgwxkdj71u3sefhudqtyqgn61syz1jyggcgshki
+- door: bts8dez2gpfhcm3ksb6hd6
 - key1: bts5h8p1xfyuze26n4amos
 - key2: bts5nczsauqoumn3v3zk74
