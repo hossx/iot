@@ -12,7 +12,7 @@ var Door = module.exports.Door = function(deviceId) {
     this.did = deviceId;
     this.endpoint = {};
     this.redisClient = Redis.createClient(6379, 'localhost');
-    this.authedKeys = {keys:{}, hashs:{}};
+    this.authedKeys = {keys:{}, hashs:{}, remb:{}};
     this.admin = null;
     this.bc = new BC(this.did);
     this.isDoorOpened = false;
@@ -85,9 +85,9 @@ Door.prototype.init = function() {
                 self.th.listen();
             });
             self.th.on(TH.EventType.NEW_MESSAGE, function(message) {
-                console.log('建立连接到：\t' + message.from)
+                console.log('建立连接到：\t' + self.authedKeys.remb[message.from])
                 if (message.from in self.authedKeys.hashs) {
-                    console.log('收到命令：\t' + message.message + '\n' + '来自钥匙：\t' + self.authedKeys.hashs[message.from]);
+                    console.log('收到命令：\t' + message.message + '\n' + '来自钥匙：\t' + self.authedKeys.remb[message.from]);
                     if (message.message == 'open') {
                         if (self.isDoorOpened) {
                             console.log('锁已经处于打开状态');
@@ -116,7 +116,7 @@ Door.prototype.init = function() {
                         }
                     }
                 } else {
-                    console.log('此钥匙未通过授权: ' + message.from);
+                    console.log('此钥匙未通过授权: ' + self.authedKeys.remb[message.from]);
                 }
             });
         }
@@ -175,6 +175,7 @@ Door.prototype.authKey = function(key, keyMap) {
         } else {
             keyMap.keys[completeKey.name] = completeKey.publicData;
             keyMap.hashs[completeKey.publicData] = completeKey.name;
+            keyMap.remb[completeKey.publicData] = completeKey.name;
             self.redisClient.sadd('auth', [key], function(err, redisResp) {
                 if (err) {
                     console.log(err + ' ' + redisResp);
@@ -206,6 +207,7 @@ Door.prototype.initKeys = function(initAuthedKeys) {
         for (var i = 0; i < completedKeys.length; ++i) {
             self.authedKeys.keys[completedKeys[i].name] = completedKeys[i].publicData;
             self.authedKeys.hashs[completedKeys[i].publicData] = completedKeys[i].name;
+            self.authedKeys.remb[completedKeys[i].publicData] = completedKeys[i].name;
         }
         self.authOk = true;
         self.printStats();

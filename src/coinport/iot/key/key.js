@@ -49,7 +49,7 @@ Key.prototype.processCmd = function(cmd) {
                     var hash = keyHash.publicData;
                     if (hash) {
                         self.th.sendMessage(hash, op);
-                        console.log('\n已连接：\t' + hash);
+                        console.log('\n建立连接到：\t' + id);
                         console.log('发送请求:\t' + op + ' 到: ' + id + '(' + hash + ')')
                     } else {
                         console.log('找不到此锁的hashname: ' + id);
