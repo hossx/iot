@@ -41,7 +41,7 @@ Key.prototype.processCmd = function(cmd) {
         var op = parsedCmd[0];
         var id = parsedCmd[1];
         var tid = parsedCmd[2];
-        if (op == 'open' || op == 'close') {
+        if (op == 'unlock' || op == 'lock') {
             self.bc.getAccountInfo(id, function(error, keyHash) {
                 if (error || !keyHash) {
                     console.log('找不到此锁的hashname: ' + id);

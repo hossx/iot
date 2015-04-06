@@ -35,8 +35,15 @@ Door.prototype.printStats = function() {
     }
 };
 
+Door.prototype.showApis = function() {
+    console.log('该设备支持的设备APIs:');
+    console.log('\tlock deviceId  // Lock this device');
+    console.log('\tunlock deviceId  // Unlock this device');
+};
+
 Door.prototype.init = function() {
     var self = this;
+    self.showApis();
     BC.getPrivateKey(self.did, function(error, response) {
         if (error) {
             console.log(error);
@@ -91,7 +98,7 @@ Door.prototype.init = function() {
                 console.log('建立连接到：\t' + self.authedKeys.remb[message.from])
                 if (message.from in self.authedKeys.hashs) {
                     console.log('收到命令：\t' + message.message + '\n' + '来自钥匙：\t' + self.authedKeys.remb[message.from]);
-                    if (message.message == 'open') {
+                    if (message.message == 'unlock') {
                         if (self.isDoorOpened) {
                             console.log('锁已经处于打开状态');
                         } else {
@@ -104,7 +111,7 @@ Door.prototype.init = function() {
                                 }
                             });
                         }
-                    } else if (message.message == 'close') {
+                    } else if (message.message == 'unlock') {
                         if (!self.isDoorOpened) {
                             console.log('锁已经处于关闭状态');
                         } else {
