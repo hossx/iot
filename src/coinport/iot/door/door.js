@@ -111,7 +111,7 @@ Door.prototype.init = function() {
                                 }
                             });
                         }
-                    } else if (message.message == 'unlock') {
+                    } else if (message.message == 'lock') {
                         if (!self.isDoorOpened) {
                             console.log('锁已经处于关闭状态');
                         } else {
